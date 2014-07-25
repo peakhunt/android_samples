@@ -142,4 +142,8 @@ public class RunManager {
     public RunDatabaseHelper.RunCursor queryRuns() {
         return mHelper.queryRuns();
     }
+
+    public RunDatabaseHelper.LocationCursor queryLocationsForRun(long runId) {
+        return mHelper.queryLocationsForRun(runId);
+    }
 }

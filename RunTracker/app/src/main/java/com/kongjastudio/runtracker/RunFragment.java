@@ -4,6 +4,7 @@ import android.app.Fragment;
 import android.app.LoaderManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
 import android.location.Location;
@@ -27,7 +28,8 @@ public class RunFragment extends Fragment {
     private static final int LOAD_LOCATION = 1;
 
     private Button      mStartButton,
-                        mStopButton;
+                        mStopButton,
+                        mMapButton;
 
     private TextView    mStartedTextView,
                         mLatitudeTextView,
@@ -118,6 +120,16 @@ public class RunFragment extends Fragment {
             }
         });
 
+        mMapButton = (Button)view.findViewById(R.id.run_mapButton);
+        mMapButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(getActivity(), RunMapActivity.class);
+                i.putExtra(RunMapActivity.EXTRA_RUN_ID, mRun.getId());
+                startActivity(i);
+            }
+        });
+
         updateUI();
 
         return view;
@@ -131,12 +143,16 @@ public class RunFragment extends Fragment {
             mStartedTextView.setText(mRun.getStartDate().toString());
 
         int durationSeconds = 0;
-        if(mLastLocation != null) {
+        if(mRun != null && mLastLocation != null) {
             durationSeconds = mRun.getDurationSeconds(mLastLocation.getTime());
             mLatitudeTextView.setText(Double.toString(mLastLocation.getLatitude()));
             mLongitudeTextView.setText(Double.toString(mLastLocation.getLongitude()));
             mAltitudeTextView.setText(Double.toString(mLastLocation.getAltitude()));
+            mMapButton.setEnabled(true);
+        } else {
+            mMapButton.setEnabled(false);
         }
+
         mDurationTextView.setText(Run.formatDuration(durationSeconds));
 
         mStartButton.setEnabled(!started);
