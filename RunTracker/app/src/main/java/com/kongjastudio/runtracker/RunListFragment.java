@@ -1,8 +1,10 @@
 package com.kongjastudio.runtracker;
 
 import android.app.ListFragment;
+import android.app.LoaderManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -18,21 +20,15 @@ import android.widget.TextView;
 /**
  * Created by ctrl on 14. 7. 25.
  */
-public class RunListFragment extends ListFragment {
+public class RunListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final int REQUEST_NEW_RUN = 0;
-
-    private RunDatabaseHelper.RunCursor mCursor;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        mCursor = RunManager.get(getActivity()).queryRuns();
-
-        RunCursorAdapter adapter = new RunCursorAdapter(getActivity(), mCursor);
-        setListAdapter(adapter);
-
+        getLoaderManager().initLoader(0, null, this);
     }
 
     @Override
@@ -57,8 +53,7 @@ public class RunListFragment extends ListFragment {
     @Override
     public void onActivityResult(int requestCode, int resulCode, Intent data) {
         if(REQUEST_NEW_RUN == requestCode) {
-            mCursor.requery();
-            ((RunCursorAdapter)getListAdapter()).notifyDataSetChanged();
+            getLoaderManager().restartLoader(0, null, this);
         }
     }
 
@@ -67,12 +62,6 @@ public class RunListFragment extends ListFragment {
         Intent i = new Intent(getActivity(), RunTrackerActivity.class);
         i.putExtra(RunTrackerActivity.EXTRA_RUN_ID, id);
         startActivity(i);
-    }
-
-    @Override
-    public void onDestroy() {
-        mCursor.close();
-        super.onDestroy();
     }
 
     private static class RunCursorAdapter extends CursorAdapter {
@@ -97,6 +86,34 @@ public class RunListFragment extends ListFragment {
             TextView startDateTextView = (TextView)view;
 
             startDateTextView.setText("Run at " + run.getStartDate());
+        }
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new RunListCursorLoader(getActivity());
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        RunCursorAdapter adapter =
+                new RunCursorAdapter(getActivity(), (RunDatabaseHelper.RunCursor)cursor);
+        setListAdapter(adapter);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        setListAdapter(null);
+    }
+
+    private static class RunListCursorLoader extends SQLiteCursorLoader {
+        public RunListCursorLoader(Context context) {
+            super(context);
+        }
+
+        @Override
+        protected Cursor loadCursor() {
+            return RunManager.get(getContext()).queryRuns();
         }
     }
 }

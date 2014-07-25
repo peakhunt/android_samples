@@ -72,7 +72,7 @@ public class RunDatabaseHelper extends SQLiteOpenHelper {
 
     public RunCursor queryRuns() {
         Cursor wrapped = getReadableDatabase().query(TABLE_RUN,
-                null, null, null, null, null, COLUMN_RUN_START_DATE + "asc" );
+                null, null, null, null, null, COLUMN_RUN_START_DATE + " ASC" );
         return new RunCursor(wrapped);
     }
 
